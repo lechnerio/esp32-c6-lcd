@@ -40,10 +40,20 @@ Arduino_GFX *gfx = new Arduino_ST7789(bus, LCD_RST, 3, true, 172, 320, 34, 0, 34
 BLEScan *scanner = nullptr;
 uint32_t scanNumber = 0;
 
+enum ViewMode : uint8_t { VIEW_ALL = 0, VIEW_NAMED = 1, VIEW_STATS = 2 };
+
 std::vector<BleEntry> lastResults;
-bool onlyNamed = false;
+ViewMode viewMode = VIEW_ALL;
 int lastBtnState = HIGH;
 uint32_t lastBtnChange = 0;
+
+const char *viewLabel(ViewMode v) {
+  switch (v) {
+    case VIEW_NAMED: return "[named]";
+    case VIEW_STATS: return "[stats]";
+    default:         return "[all]";
+  }
+}
 
 uint16_t rssiColor(int rssi) {
   if (rssi >= -60) return RGB565_GREEN;
@@ -76,7 +86,7 @@ void drawHeader(int shown, int total) {
   gfx->setCursor(MARGIN_X, MARGIN_Y);
   gfx->printf("BLE radar  #%lu  %d/%d  %s",
               (unsigned long)scanNumber, shown, total,
-              onlyNamed ? "[named]" : "[all]");
+              viewLabel(viewMode));
   gfx->drawFastHLine(MARGIN_X, HEADER_PX + MARGIN_Y + 2,
                      gfx->width() - 2 * MARGIN_X, RGB565_DARKGREY);
 }
@@ -130,7 +140,63 @@ void drawResults(const std::vector<BleEntry>& results, int total) {
   }
 }
 
+void drawStats() {
+  int greenCount = 0, orangeCount = 0, redCount = 0;
+  for (const auto& e : lastResults) {
+    if (e.rssi >= -60)      greenCount++;
+    else if (e.rssi >= -90) orangeCount++;
+    else                    redCount++;
+  }
+
+  drawHeader(greenCount + orangeCount + redCount, (int)lastResults.size());
+  gfx->fillRect(0, rowsAreaY(), gfx->width(), rowsAreaH(), RGB565_BLACK);
+
+  char g[8], o[8], r[8];
+  snprintf(g, sizeof(g), "%d", greenCount);
+  snprintf(o, sizeof(o), "%d", orangeCount);
+  snprintf(r, sizeof(r), "%d", redCount);
+
+  int totalChars = (int)(strlen(g) + 1 + strlen(o) + 1 + strlen(r));
+  int availW = gfx->width() - 2 * MARGIN_X;
+  int availH = rowsAreaH();
+  int sz = 1;
+  for (int s = 10; s >= 1; s--) {
+    if (totalChars * 6 * s <= availW && 8 * s <= availH) { sz = s; break; }
+  }
+
+  int totalW = totalChars * 6 * sz;
+  int x = (gfx->width() - totalW) / 2;
+  int y = rowsAreaY() + (availH - 8 * sz) / 2;
+  gfx->setTextSize(sz);
+
+  gfx->setTextColor(RGB565_GREEN);
+  gfx->setCursor(x, y); gfx->print(g);
+  x += (int)strlen(g) * 6 * sz;
+
+  gfx->setTextColor(RGB565_DARKGREY);
+  gfx->setCursor(x, y); gfx->print("/");
+  x += 6 * sz;
+
+  gfx->setTextColor(RGB565_ORANGE);
+  gfx->setCursor(x, y); gfx->print(o);
+  x += (int)strlen(o) * 6 * sz;
+
+  gfx->setTextColor(RGB565_DARKGREY);
+  gfx->setCursor(x, y); gfx->print("/");
+  x += 6 * sz;
+
+  gfx->setTextColor(RGB565_RED);
+  gfx->setCursor(x, y); gfx->print(r);
+
+  gfx->setTextSize(1);
+}
+
 void renderLast() {
+  if (viewMode == VIEW_STATS) {
+    drawStats();
+    return;
+  }
+  bool onlyNamed = (viewMode == VIEW_NAMED);
   std::vector<BleEntry> filtered;
   filtered.reserve(lastResults.size());
   for (const auto& e : lastResults) {
@@ -146,8 +212,8 @@ bool pollButton() {
     lastBtnChange = now;
     lastBtnState = s;
     if (s == LOW) {
-      onlyNamed = !onlyNamed;
-      Serial.printf("Filter toggled: %s\n", onlyNamed ? "named only" : "all");
+      viewMode = (ViewMode)((viewMode + 1) % 3);
+      Serial.printf("View: %s\n", viewLabel(viewMode));
       renderLast();
       return true;
     }
@@ -220,7 +286,7 @@ void loop() {
 
   renderLast();
 
-  snprintf(msg, sizeof(msg), "Idle  %d devices  (BOOT: toggle)", n);
+  snprintf(msg, sizeof(msg), "Idle  %d devices  (BOOT: cycle)", n);
   drawFooter(msg);
 
   Serial.printf("Scan #%lu done: %d devices\n", (unsigned long)scanNumber, n);
