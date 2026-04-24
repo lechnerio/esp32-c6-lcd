@@ -14,6 +14,7 @@ Incremental projects for the **Waveshare ESP32-C6 1.47" LCD** dev board — star
 | - | ------- | ------ | ----- |
 | 1 | [`1-hello-world/`](./1-hello-world/) | ✅ done | LCD init, draw colored text |
 | 2 | [`2-bluetooth-radar/`](./2-bluetooth-radar/) | ✅ done | BLE scan, sorted by RSSI, distance estimate, landscape UI, BOOT-button filter |
+| 3 | [`3-ibs-radar/`](./3-ibs-radar/) | 🟢 in progress | Continuous callback-driven scan, filter to iBS03 / iBS05, rolling-window median distance |
 
 More coming. Each project folder has its own `README.md` with goal, pins used, and expected result — shared setup / board details live in [`docs/`](./docs/).
 
