@@ -23,24 +23,24 @@ void setup() {
   digitalWrite(LCD_BL, HIGH);
 
   gfx->begin();
-  gfx->fillScreen(BLACK);
+  gfx->fillScreen(RGB565_BLACK);
 
   gfx->setCursor(10, 40);
-  gfx->setTextColor(WHITE);
+  gfx->setTextColor(RGB565_WHITE);
   gfx->setTextSize(3);
   gfx->println("Hello,");
 
   gfx->setCursor(10, 80);
-  gfx->setTextColor(CYAN);
+  gfx->setTextColor(RGB565_CYAN);
   gfx->println("World!");
 
   gfx->setCursor(10, 140);
-  gfx->setTextColor(YELLOW);
+  gfx->setTextColor(RGB565_YELLOW);
   gfx->setTextSize(2);
   gfx->println("ESP32-C6");
 
   gfx->setCursor(10, 170);
-  gfx->setTextColor(MAGENTA);
+  gfx->setTextColor(RGB565_MAGENTA);
   gfx->println("Waveshare 1.47\"");
 }
 
