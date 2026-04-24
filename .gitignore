@@ -1,0 +1,54 @@
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+.clang_complete
+.gcc-flags.json
+lib/readme.txt
+lib_deps/
+CMakeListsPrivate.txt
+cmake-build-*/
+
+# Build artifacts / firmware binaries
+build/
+*.bin
+*.elf
+*.hex
+*.map
+*.o
+*.obj
+*.a
+*.d
+
+# VS Code (PlatformIO auto-generates these per project)
+.vscode/
+!.vscode/extensions.json
+
+# JetBrains / CLion
+.idea/
+
+# ESP-IDF (for future projects)
+sdkconfig.old
+managed_components/
+dependencies.lock
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Editor/tooling
+*.swp
+*.swo
+*~
+.cache/
+
+# Logs
+*.log
